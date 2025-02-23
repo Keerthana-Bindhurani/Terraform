@@ -21,7 +21,7 @@ pipeline {
             steps {
                 script {
                     echo "Checking out code from GitHub..."
-                    deleteDir() // Clean workspace before fetching new code
+                    deleteDir()
                     git branch: 'main', url: 'https://github.com/Keerthana-Bindhurani/Terraform.git'
                 }
             }
@@ -63,7 +63,7 @@ pipeline {
             steps {
                 script {
                     echo "Applying Terraform changes..."
-                    sh 'terraform apply -auto-approve tfplan -input=false'
+                    sh 'terraform apply -auto-approve tfplan' // ✅ Fixed command
                 }
             }
         }
@@ -71,10 +71,10 @@ pipeline {
 
     post {
         success {
-            echo "✅ Terraform applied successfully!"
+            echo " Terraform applied successfully!"
         }
         failure {
-            echo "❌ Terraform deployment failed. Check logs."
+            echo " Terraform deployment failed. Check logs."
         }
     }
 }
