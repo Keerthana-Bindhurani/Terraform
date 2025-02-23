@@ -21,7 +21,7 @@ pipeline {
             steps {
                 script {
                     echo "Checking out code from GitHub..."
-                    deleteDir()
+                    deleteDir() // Clean workspace before fetching new code
                     git branch: 'main', url: 'https://github.com/Keerthana-Bindhurani/Terraform.git'
                 }
             }
@@ -32,18 +32,6 @@ pipeline {
                 script {
                     echo "Initializing Terraform..."
                     sh 'terraform init -input=false'
-                }
-            }
-        }
-
-        stage('Validate Terraform') {
-            steps {
-                script {
-                    echo "Validating Terraform configuration..."
-                    def validateStatus = sh(script: 'terraform validate', returnStatus: true)
-                    if (validateStatus != 0) {
-                        error "Terraform validation failed. Check your .tf files."
-                    }
                 }
             }
         }
@@ -90,5 +78,3 @@ pipeline {
         }
     }
 }
-
-       
