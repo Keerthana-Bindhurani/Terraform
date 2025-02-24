@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:  # Allows manual trigger
 
 jobs:
   terraform:
@@ -16,14 +17,14 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: 1.5.7 # Use latest stable version
+          terraform_version: 1.5.7
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1 # Change if using a different AWS region
+          aws-region: us-east-1 # Change this if needed
 
       - name: Initialize Terraform
         run: terraform init
@@ -34,6 +35,33 @@ jobs:
       - name: Terraform Plan
         run: terraform plan -out=tfplan
 
-      - name: Terraform Apply (Manual Approval Needed)
+      - name: Terraform Apply (Only on Main Branch)
         run: terraform apply -auto-approve tfplan
-        if: github.ref == 'refs/heads/main' # Only applies on main branch
+        if: github.ref == 'refs/heads/main'
+
+  destroy:
+    runs-on: ubuntu-latest
+    needs: terraform
+    if: github.event_name == 'workflow_dispatch'  # Only runs when manually triggered
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.7
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Initialize Terraform
+        run: terraform init
+
+      - name: Terraform Destroy
+        run: terraform destroy -auto-approve
